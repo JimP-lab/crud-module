@@ -41,7 +41,7 @@ class Crud extends AdminController
         $insert_id = $this->Clients_model->add($data);
         if ($insert_id) {
             $this->session->set_flashdata('success', 'Client was added.');
-            redirect(admin_url('crud/crudtablesClient/' . $insert_id));
+            redirect(admin_url('crud/crudtablesClient/'));
 
         } else {
             $this->session->set_flashdata('error', 'Failed to add client.');
