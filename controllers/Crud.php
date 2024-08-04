@@ -5,103 +5,123 @@ class Crud extends AdminController
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('Crud_model');
-        $this->load->model('Clients_model');
+        $this->load->model('Crud_Model');
+        $this->load->model('Clients_Model');
     }
 
     public function Create()
     {
         if ($this->input->post()) {
             $data = $this->input->post();
-            $this->Crud_model->add($data);
-            redirect(admin_url('crud/crudCreateClient'));
+            $this->Clients_Model->add($data);
+            redirect(admin_url('crud/CreateClient'));
         }
         $this->load->view('Create');
     }
 
-    public function crudCreateClient() {
-        log_message('debug','hello world');
-        $this->load->view('Create');
+    public function CreateClient() {
+        log_message('debug','Creating Clients');
+        $this->load->view('Create_Client');
     }
 
-    public function crudClientCredentials() {
-        log_message('debug','Processing client credentials');
-        $Name = $this->input->post('Name');
-        $VAT = $this->input->post('VAT');
-
-        if (empty($Name) || empty($VAT)) {
-            $this->session->set_flashdata('error', 'Name and VAT are required.');
-            redirect(admin_url('crud/crudCreateClient'));
-        }
+    public function ClientCredentials() {
+        log_message('debug','Processing Clients credentials');
+        $name = $this->input->post('name'); 
+        $vat = $this->input->post('vat');
+    
         $data = [
-            'Name' => $Name,
-            'VAT' => $VAT,
+            'name' => $name, 
+            'vat' => $vat,
         ];
-
-        $insert_id = $this->Clients_model->add($data);
+    
+        $insert_id = $this->Clients_Model->add($data);
         if ($insert_id) {
             $this->session->set_flashdata('success', 'Client was added.');
-            redirect(admin_url('crud/crudtablesClient/'));
-
+            redirect(admin_url('crud/TablesClient'));
+    
         } else {
-            $this->session->set_flashdata('error', 'Failed to add client.');
-            redirect(admin_url('crud/crudCreateClient'));
+            $this->session->set_flashdata('error', 'Failed to add Client.');
+            redirect(admin_url('crud/CreateClient'));
         }
-    }    
+    }
 
-    public function crudtablesClient($id)
+    public function TablesClient($id= '')
     {     
-        $client_data = $this->Clients_model->get($id);
-        if ($client_data) {
-           
-            $this->load->model('Clients_model'); 
-            $this->db->select('Name, VAT');
+        $Clients_data = $this->Clients_Model->get($id);
+        if ($Clients_data) {        
+            $this->load->model('Clients_Model'); 
+            $this->db->select('id,name,vat');
             $this->db->from('crud_clients');
-
             $query = $this->db->get();
-            $all_clients_data = $query->result(); 
-            
-            $data['crud'] = [];
-            foreach ($all_clients_data as $client) {
-                $data['crud'][] = [
-                    'Name' => $client->Name,
-                    'VAT' => $client->VAT,
+            $all_Clients_data = $query->result(); 
+            $data['Clients'] = [];
+            foreach ($all_Clients_data as $Client) {
+                $data['Clients'][] = [
+                    'id' => $Client['id'],
+                    'name' => $Client->name,
+                    'vat' => $Client->vat,
                 ];
             }
-    
             log_message('debug', 'Loading table view');
-            $this->load->view('Tables', $data);
+            $this->load->view('Show_Client', $data);
         } else {
-            $this->session->set_flashdata('error', 'Client not found.');
-            redirect(admin_url('crud/crudCreateClient'));
+            $this->session->set_flashdata('error', 'Vendor not found.');
+            redirect(admin_url('crud/CreateClient'));
         }
     }
-    public function crudDeleteClient() {
-        // Log message for debugging
-        log_message('debug', 'Attempting to delete a client');
-    
-        // Check if a form is submitted for deletion
-        if ($this->input->server('REQUEST_METHOD') == 'POST') {
-            // Get the client ID to be deleted
-            $client_id = $this->input->post('client_id');
-    
-            if ($client_id) {
-                // Attempt to delete the client
-                $this->Clients_model->delete($client_id);
-    
-                // Set success message and redirect
+    public function EditClient($id = '')
+{
+    if ($this->input->post()) {
+        $data = [
+            'name' => $this->input->post('name'),
+            'vat' => $this->input->post('vat'),
+        ];
+
+        $result = $this->Clients_Model->update($id, $data);
+
+        if ($result) {
+            $this->session->set_flashdata('success', 'Client was updated.');
+        } else {
+            $this->session->set_flashdata('error', 'Failed to update Client.');
+        }
+    }
+
+    // Load client data for display
+    $Client = $this->Clients_Model->get($id);
+
+    if ($Client) {
+        $data['Clients'] = $Client;
+        $this->load->view('Edit_Client', $data);
+    } else {
+        $this->session->set_flashdata('error', 'Client not found.');
+        $this->load->view('Create_Client');
+    }
+}
+
+    public function DeleteClient()
+{
+    // Check if a deletion request was submitted
+    if ($this->input->server('REQUEST_METHOD') == 'POST') {
+        $id = $this->input->post('id');
+        if ($id) {
+            $result = $this->Clients_Model->delete($id);
+            if ($result) {
                 $this->session->set_flashdata('success', 'Client deleted successfully.');
-                redirect(admin_url('crud/crudtablesClient'));
             } else {
-                // Set error message if no client ID is provided
-                $this->session->set_flashdata('error', 'No client selected for deletion.');
-                redirect(admin_url('crud/crudtablesClient'));
+                $this->session->set_flashdata('error', 'Failed to delete Client.');
             }
         } else {
-            // If no POST request, show the delete form
-            $this->load->view('Delete');
+            $this->session->set_flashdata('error', 'No vendor was found');
         }
+        // Redirect to refresh the page after deletion attempt
+        redirect(admin_url('crud/DeleteClient'));
     }
+
+    // Fetch all vendors to display in the table
+    $data['Clients'] = $this->Clients_Model->getAllClients();
     
-    
+    // Load the view with the vendor data
+    $this->load->view('Delete_Client', $data);
 }
+}
+?>
