@@ -1,5 +1,4 @@
 <?php
-
 defined('BASEPATH') or exit('No direct script access allowed');
 /*
 Module Name: crud
@@ -33,3 +32,4 @@ function crud_module_init_menu_items() {
         ]);
     }
 }
+?>
