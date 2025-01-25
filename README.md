@@ -1,4 +1,3 @@
-
 # CRUD Module for Perfex CRM
 
 The CRUD Module is a comprehensive Create, Read, Update, and Delete system designed to efficiently manage and store client information within the Perfex CRM. This module is built using PHP and HTML, leveraging the robust frameworks of Perfex CRM and CodeIgniter 3.
